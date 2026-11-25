@@ -35,16 +35,18 @@ jobs:
           gradle-version: '8.9'
 
       - name: Extract project
-        run: |
-          mkdir SmartCalc-Android
-          unzip -q SmartCalc-Android-Source.zip -d SmartCalc-Android
+        run: unzip -q SmartCalc-Android-Source.zip
 
       - name: Build APK
-        working-directory: SmartCalc-Android
-        run: gradle assembleDebug
+        run: |
+          PROJECT_DIR=$(dirname "$(find . -name settings.gradle -print -quit)")
+          echo "Project directory: $PROJECT_DIR"
+          test -n "$PROJECT_DIR"
+          cd "$PROJECT_DIR"
+          gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: SmartCalc-APK
-          path: SmartCalc-Android/app/build/outputs/apk/debug/app-debug.apk
+          path: '**/app/build/outputs/apk/debug/app-debug.apk'
