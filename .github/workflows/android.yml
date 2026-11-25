@@ -1,4 +1,3 @@
-
 name: Build SmartCalc APK
 
 on:
@@ -9,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -17,20 +17,22 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - uses: android-actions/setup-android@v3
-
-      - run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: Install Android SDK packages
+        run: sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
 
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - run: unzip SmartCalc-Android-Source.zip
+      - name: Extract project
+        run: unzip -q SmartCalc-Android-Source.zip
 
-      - run: gradle assembleDebug
+      - name: Build APK
         working-directory: SmartCalc-Android
+        run: gradle assembleDebug
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
           name: SmartCalc-APK
           path: SmartCalc-Android/app/build/outputs/apk/debug/app-debug.apk
