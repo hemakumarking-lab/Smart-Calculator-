@@ -9,10 +9,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    env:
-      ANDROID_HOME: /usr/local/lib/android/sdk
-      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
-
     steps:
       - uses: actions/checkout@v4
 
@@ -23,16 +19,25 @@ jobs:
 
       - name: Install Android SDK
         run: |
-          SDKMANAGER="$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager"
-          yes | "$SDKMANAGER" --licenses || true
-          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0"
+          export ANDROID_HOME=$HOME/android-sdk
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          curl -fsSL https://dl.google.com/android/repository/commandlinetools-linux-12266719_latest.zip -o /tmp/android.zip
+          unzip -q /tmp/android.zip -d /tmp/android-tools
+          mkdir -p "$ANDROID_HOME/cmdline-tools/latest"
+          mv /tmp/android-tools/cmdline-tools/* "$ANDROID_HOME/cmdline-tools/latest/"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "platforms;android-35" "build-tools;35.0.0"
 
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
       - name: Extract project
-        run: unzip -q SmartCalc-Android-Source.zip
+        run: |
+          mkdir SmartCalc-Android
+          unzip -q SmartCalc-Android-Source.zip -d SmartCalc-Android
 
       - name: Build APK
         working-directory: SmartCalc-Android
